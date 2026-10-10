@@ -50,7 +50,10 @@ public final class ProfileEditorScreen extends Screen {
     private String message = "";
 
     public ProfileEditorScreen(ProfilesScreen parent, Profile editing) {
-        super(Component.literal(editing == null ? "Create Profile" : "Edit Profile"));
+        super(Component.literal(
+                editing == null ? "Create Profile" : "Edit Profile"
+        ));
+
         this.parent = parent;
         this.editing = editing;
 
@@ -68,8 +71,11 @@ public final class ProfileEditorScreen extends Screen {
         int contentWidth = Math.max(0, width - margin * 2);
 
         nameField = new EditBox(
-                font, margin + 65, 12,
-                Math.max(50, contentWidth - 65), 20,
+                font,
+                margin + 65,
+                12,
+                Math.max(50, contentWidth - 65),
+                20,
                 Component.literal("Profile name")
         );
         nameField.setMaxLength(64);
@@ -77,8 +83,11 @@ public final class ProfileEditorScreen extends Screen {
         addRenderableWidget(nameField);
 
         descriptionField = new EditBox(
-                font, margin + 90, 38,
-                Math.max(50, contentWidth - 90), 20,
+                font,
+                margin + 90,
+                38,
+                Math.max(50, contentWidth - 90),
+                20,
                 Component.literal("Description")
         );
         descriptionField.setMaxLength(160);
@@ -90,6 +99,7 @@ public final class ProfileEditorScreen extends Screen {
         int headingY = 66;
         listTop = headingY + HEADER_HEIGHT + 4 + HEADER_HEIGHT + 4;
         listBottom = Math.max(listTop, height - 56);
+
         startX = margin;
         columnWidth = Math.max(1, (contentWidth - GAP * 3) / 4);
 
@@ -108,7 +118,9 @@ public final class ProfileEditorScreen extends Screen {
                 button -> saveProfile()
         ).bounds(
                 margin + contentWidth / 2 + 3,
-                buttonY, buttonWidth, 20
+                buttonY,
+                buttonWidth,
+                20
         ).build());
 
         clampAllScrolls();
@@ -125,7 +137,8 @@ public final class ProfileEditorScreen extends Screen {
                         pack.getTitle().getString()
                 ))
                 .sorted(Comparator.comparing(
-                        Item::name, String.CASE_INSENSITIVE_ORDER
+                        Item::name,
+                        String.CASE_INSENSITIVE_ORDER
                 ))
                 .toList();
 
@@ -137,7 +150,8 @@ public final class ProfileEditorScreen extends Screen {
                         mod.getMetadata().getName()
                 ))
                 .sorted(Comparator.comparing(
-                        Item::name, String.CASE_INSENSITIVE_ORDER
+                        Item::name,
+                        String.CASE_INSENSITIVE_ORDER
                 ))
                 .toList();
     }
@@ -171,6 +185,7 @@ public final class ProfileEditorScreen extends Screen {
         graphics.fill(
                 margin, 64, margin + contentWidth, 65, 0xFFFFFFFF
         );
+
         graphics.centeredText(
                 font, "AVAILABLE", width / 2, 68, 0xFFFFFFFF
         );
@@ -187,18 +202,27 @@ public final class ProfileEditorScreen extends Screen {
             graphics.fill(x, headingY, x + 1, listBottom, 0xFF808080);
         }
 
-        drawItems(graphics, 0, allPacks, selectedPacks,
-                packAvailableScroll, false);
-        drawItems(graphics, 1, allMods, selectedMods,
-                modAvailableScroll, false);
-        drawItems(graphics, 2, allPacks, selectedPacks,
-                packSelectedScroll, true);
-        drawItems(graphics, 3, allMods, selectedMods,
-                modSelectedScroll, true);
+        drawItems(
+                graphics, 0, allPacks, selectedPacks,
+                packAvailableScroll, false, mouseX, mouseY
+        );
+        drawItems(
+                graphics, 1, allMods, selectedMods,
+                modAvailableScroll, false, mouseX, mouseY
+        );
+        drawItems(
+                graphics, 2, allPacks, selectedPacks,
+                packSelectedScroll, true, mouseX, mouseY
+        );
+        drawItems(
+                graphics, 3, allMods, selectedMods,
+                modSelectedScroll, true, mouseX, mouseY
+        );
 
         graphics.fill(
-                margin, listBottom, margin + contentWidth,
-                listBottom + 1, 0xFFFFFFFF
+                margin, listBottom,
+                margin + contentWidth, listBottom + 1,
+                0xFFFFFFFF
         );
 
         if (!message.isEmpty()) {
@@ -221,10 +245,13 @@ public final class ProfileEditorScreen extends Screen {
                 x, y, x + columnWidth, y + HEADER_HEIGHT,
                 0xFF404040
         );
+
         graphics.centeredText(
-                font, title, x + columnWidth / 2, y + 6,
+                font, title,
+                x + columnWidth / 2, y + 6,
                 0xFFFFFFFF
         );
+
         graphics.fill(
                 x, y + HEADER_HEIGHT,
                 x + columnWidth, y + HEADER_HEIGHT + 1,
@@ -238,12 +265,16 @@ public final class ProfileEditorScreen extends Screen {
             List<Item> items,
             Set<String> selected,
             int scroll,
-            boolean selectedColumn
+            boolean selectedColumn,
+            int mouseX,
+            int mouseY
     ) {
         int x = startX + column * (columnWidth + GAP) + 2;
+
         int maxRows = Math.max(
                 0, (listBottom - listTop - 2) / ROW_HEIGHT
         );
+
         int rowRight = x + columnWidth - 4;
 
         List<Item> shown = items.stream()
@@ -253,8 +284,10 @@ public final class ProfileEditorScreen extends Screen {
 
         if (shown.isEmpty()) {
             graphics.centeredText(
-                    font, "Empty", x + columnWidth / 2,
-                    listTop + 8, 0xFFAAAAAA
+                    font, "Empty",
+                    x + columnWidth / 2,
+                    listTop + 8,
+                    0xFFAAAAAA
             );
             return;
         }
@@ -262,12 +295,18 @@ public final class ProfileEditorScreen extends Screen {
         for (int i = scroll;
              i < shown.size() && i < scroll + maxRows;
              i++) {
+
             Item item = shown.get(i);
             int rowY = listTop + (i - scroll) * ROW_HEIGHT;
 
+            boolean hovered = mouseX >= x
+                    && mouseX < rowRight
+                    && mouseY >= rowY
+                    && mouseY < rowY + ROW_HEIGHT - 2;
+
             graphics.fill(
                     x, rowY, rowRight, rowY + ROW_HEIGHT - 2,
-                    0xFF292929
+                    hovered ? 0xFF505050 : 0xFF292929
             );
 
             String label = item.name();
@@ -276,6 +315,7 @@ public final class ProfileEditorScreen extends Screen {
             while (!label.isEmpty() && font.width(label) > maxTextWidth) {
                 label = label.substring(0, label.length() - 1);
             }
+
             if (!label.equals(item.name())) {
                 label = label.isEmpty() ? "…" : label + "…";
             }
@@ -283,9 +323,13 @@ public final class ProfileEditorScreen extends Screen {
             graphics.text(
                     font, label, x + 4, rowY + 6, 0xFFFFFFFF
             );
+
             graphics.text(
-                    font, selectedColumn ? "‹" : "›",
-                    rowRight - 10, rowY + 5, 0xFFFFFFFF
+                    font,
+                    selectedColumn ? "‹" : "›",
+                    rowRight - 10,
+                    rowY + 5,
+                    0xFFFFFFFF
             );
         }
     }
@@ -311,26 +355,31 @@ public final class ProfileEditorScreen extends Screen {
         }
 
         int column = findColumn(mouseX);
-        if (column == -1) {
+        if (column < 0) {
             return false;
         }
 
-        int row = (int) ((mouseY - listTop) / ROW_HEIGHT);
+        int visibleRows = Math.max(
+                0, (listBottom - listTop - 2) / ROW_HEIGHT
+        );
 
-        List<Item> items = (column == 0 || column == 2)
-                ? allPacks : allMods;
-        Set<String> selected = (column == 0 || column == 2)
-                ? selectedPacks : selectedMods;
+        int row = (int) ((mouseY - listTop) / ROW_HEIGHT);
+        if (row < 0 || row >= visibleRows) {
+            return false;
+        }
+
+        boolean packsColumn = column == 0 || column == 2;
         boolean selectedColumn = column >= 2;
+
+        List<Item> items = packsColumn ? allPacks : allMods;
+        Set<String> selected = packsColumn ? selectedPacks : selectedMods;
 
         List<Item> shown = items.stream()
                 .filter(item ->
                         selected.contains(item.id()) == selectedColumn)
                 .toList();
 
-        int scroll = getScroll(column);
-        int index = scroll + row;
-
+        int index = getScroll(column) + row;
         if (index < 0 || index >= shown.size()) {
             return false;
         }
@@ -367,6 +416,7 @@ public final class ProfileEditorScreen extends Screen {
         }
 
         int direction = verticalAmount > 0 ? -1 : 1;
+
         setScroll(column, adjustScroll(
                 getScroll(column),
                 getItems(column),
@@ -381,10 +431,12 @@ public final class ProfileEditorScreen extends Screen {
     private int findColumn(double mouseX) {
         for (int i = 0; i < 4; i++) {
             int x = startX + i * (columnWidth + GAP);
+
             if (mouseX >= x && mouseX < x + columnWidth) {
                 return i;
             }
         }
+
         return -1;
     }
 
@@ -432,8 +484,11 @@ public final class ProfileEditorScreen extends Screen {
         );
 
         return Math.max(
-                0, Math.min(current + direction,
-                        Math.max(0, count - visibleRows))
+                0,
+                Math.min(
+                        current + direction,
+                        Math.max(0, count - visibleRows)
+                )
         );
     }
 
@@ -459,6 +514,7 @@ public final class ProfileEditorScreen extends Screen {
         }
 
         ProfileManager manager = ProfilesModFabric.getProfileManager();
+
         if (manager == null) {
             message = "Profile manager unavailable.";
             return;
@@ -467,22 +523,33 @@ public final class ProfileEditorScreen extends Screen {
         try {
             if (editing == null) {
                 Profile created = manager.create(name);
-                manager.update(
-                        created.getId(), name, description,
+
+                if (!manager.update(
+                        created.getId(),
+                        name,
+                        description,
                         new ArrayList<>(selectedPacks),
                         new ArrayList<>(selectedMods)
-                );
+                )) {
+                    message = "Could not update the new profile.";
+                    return;
+                }
             } else {
-                manager.update(
-                        editing.getId(), name, description,
+                if (!manager.update(
+                        editing.getId(),
+                        name,
+                        description,
                         new ArrayList<>(selectedPacks),
                         new ArrayList<>(selectedMods)
-                );
+                )) {
+                    message = "Profile no longer exists.";
+                    return;
+                }
             }
 
             returnToParent();
         } catch (IOException | IllegalArgumentException exception) {
-            message = "Could not save profile.";
+            message = "Could not save profile: " + exception.getMessage();
         }
     }
 
@@ -496,5 +563,6 @@ public final class ProfileEditorScreen extends Screen {
         return false;
     }
 
-    private record Item(String id, String name) {}
+    private record Item(String id, String name) {
+    }
 }

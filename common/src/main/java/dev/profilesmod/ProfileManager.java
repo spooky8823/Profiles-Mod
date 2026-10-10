@@ -10,7 +10,6 @@ import java.util.Optional;
 public final class ProfileManager {
     private final Path configFile;
     private final List<Profile> profiles = new ArrayList<>();
-
     private String activeProfileId;
 
     public ProfileManager(Path configFile) {
@@ -39,9 +38,13 @@ public final class ProfileManager {
     }
 
     public Profile create(String name) throws IOException {
-        String cleanName = validateName(name);
-        Profile profile = new Profile(cleanName);
+        Profile profile = new Profile(validateName(name));
         profiles.add(profile);
+
+        if (activeProfileId == null) {
+            activeProfileId = profile.getId();
+        }
+
         save();
         return profile;
     }
@@ -121,6 +124,10 @@ public final class ProfileManager {
     }
 
     private Optional<Profile> find(String id) {
+        if (id == null) {
+            return Optional.empty();
+        }
+
         return profiles.stream()
                 .filter(profile -> profile.getId().equals(id))
                 .findFirst();
