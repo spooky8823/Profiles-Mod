@@ -1,0 +1,30 @@
+plugins {
+    id 'java-library'
+}
+
+base {
+    archivesName = "${project.archives_base_name}-common"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    withSourcesJar()
+}
+
+configurations {
+    namedElements {
+        canBeConsumed = true
+        canBeResolved = false
+    }
+}
+
+artifacts {
+    namedElements(tasks.named("jar"))
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 25
+    options.encoding = 'UTF-8'
+}

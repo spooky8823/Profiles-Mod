@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "id": "profilesmod",
+  "version": "${version}",
+  "name": "Profiles Mod",
+  "description": "Manage Minecraft profiles from an in-game menu.",
+  "authors": [],
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.profilesmod.fabric.ProfilesModFabric"
+    ]
+  },
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "~26.3",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}
