@@ -10,6 +10,7 @@ import java.util.Optional;
 public final class ProfileManager {
     private final Path configFile;
     private final List<Profile> profiles = new ArrayList<>();
+
     private String activeProfileId;
 
     public ProfileManager(Path configFile) {
@@ -29,7 +30,8 @@ public final class ProfileManager {
         }
 
         boolean activeExists = profiles.stream()
-                .anyMatch(profile -> profile.getId().equals(activeProfileId));
+                .anyMatch(profile ->
+                        profile.getId().equals(activeProfileId));
 
         if (!activeExists) {
             activeProfileId = profiles.get(0).getId();
@@ -37,20 +39,46 @@ public final class ProfileManager {
     }
 
     public Profile create(String name) throws IOException {
-        Profile profile = new Profile(name);
+        String cleanName = validateName(name);
+        Profile profile = new Profile(cleanName);
         profiles.add(profile);
         save();
         return profile;
     }
 
-    public boolean rename(String id, String newName) throws IOException {
-        Optional<Profile> profile = find(id);
+    public boolean update(
+            String id,
+            String name,
+            String description,
+            List<String> resourcePackIds,
+            List<String> modIds
+    ) throws IOException {
+        Optional<Profile> result = find(id);
 
-        if (profile.isEmpty()) {
+        if (result.isEmpty()) {
             return false;
         }
 
-        profile.get().setName(newName);
+        Profile profile = result.get();
+        profile.setName(validateName(name));
+        profile.setDescription(
+                description == null ? "" : description.trim());
+        profile.setResourcePackIds(resourcePackIds);
+        profile.setModIds(modIds);
+
+        save();
+        return true;
+    }
+
+    public boolean rename(String id, String newName)
+            throws IOException {
+        Optional<Profile> result = find(id);
+
+        if (result.isEmpty()) {
+            return false;
+        }
+
+        result.get().setName(validateName(newName));
         save();
         return true;
     }
@@ -60,8 +88,8 @@ public final class ProfileManager {
             return false;
         }
 
-        boolean removed = profiles.removeIf(profile ->
-                profile.getId().equals(id));
+        boolean removed = profiles.removeIf(
+                profile -> profile.getId().equals(id));
 
         if (removed && id.equals(activeProfileId)) {
             activeProfileId = profiles.get(0).getId();
@@ -96,6 +124,15 @@ public final class ProfileManager {
         return profiles.stream()
                 .filter(profile -> profile.getId().equals(id))
                 .findFirst();
+    }
+
+    private String validateName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Profile name cannot be empty");
+        }
+
+        return name.trim();
     }
 
     private void save() throws IOException {

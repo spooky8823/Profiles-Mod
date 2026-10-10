@@ -28,15 +28,18 @@ public class ProfilesScreen extends Screen {
             return;
         }
 
-        int centerX = this.width / 2;
-        int top = Math.max(35, this.height / 2 - 75);
-
+        int centerX = width / 2;
+        int rowHeight = 56;
+        int visibleRows = Math.max(1, (height - 130) / rowHeight);
         List<Profile> profiles = manager.getProfiles();
 
-        for (int i = 0; i < profiles.size() && i < 5; i++) {
-            Profile profile = profiles.get(i);
-            int y = top + i * 25;
+        int shown = Math.min(profiles.size(), visibleRows);
+        int totalHeight = shown * rowHeight;
+        int top = Math.max(35, (height - totalHeight) / 2 - 25);
 
+        for (int i = 0; i < shown; i++) {
+            Profile profile = profiles.get(i);
+            int y = top + i * rowHeight;
             boolean active = profile.getId().equals(
                     manager.getActiveProfileId()
             );
@@ -44,89 +47,93 @@ public class ProfilesScreen extends Screen {
             String label = (active ? "[Active] " : "")
                     + profile.getName();
 
-            this.addRenderableWidget(
+            addRenderableWidget(
                     Button.builder(
                             Component.literal(label),
-                            button -> selectProfile(profile.getId())
-                    ).bounds(centerX - 100, y, 200, 20).build()
+                            button -> activateProfile(profile.getId())
+                    ).bounds(centerX - 150, y, 300, 20).build()
+            );
+
+            addRenderableWidget(
+                    Button.builder(
+                            Component.literal("Edit"),
+                            button -> editProfile(profile)
+                    ).bounds(centerX - 150, y + 23, 94, 20).build()
+            );
+
+            addRenderableWidget(
+                    Button.builder(
+                            Component.literal("Activate"),
+                            button -> activateProfile(profile.getId())
+                    ).bounds(centerX - 50, y + 23, 94, 20).build()
+            );
+
+            addRenderableWidget(
+                    Button.builder(
+                            Component.literal("Delete"),
+                            button -> deleteProfile(profile.getId())
+                    ).bounds(centerX + 50, y + 23, 100, 20).build()
             );
         }
 
-        int buttonY = top + 5 * 25 + 5;
+        int bottomY = height - 55;
 
-        this.addRenderableWidget(
+        addRenderableWidget(
                 Button.builder(
                         Component.literal("Create Profile"),
-                        button -> createProfile()
-                ).bounds(centerX - 100, buttonY, 200, 20).build()
+                        button -> minecraft.gui.setScreen(
+                                new ProfileEditorScreen(this, null)
+                        )
+                ).bounds(centerX - 155, bottomY, 150, 20).build()
         );
 
-        this.addRenderableWidget(
+        addRenderableWidget(
                 Button.builder(
-                        Component.literal("Delete Active Profile"),
-                        button -> deleteActiveProfile()
-                ).bounds(centerX - 100, buttonY + 25, 200, 20).build()
-        );
-
-        this.addRenderableWidget(
-                Button.builder(
-                        Component.literal("Back"),
-                        button -> this.onClose()
-                ).bounds(centerX - 100, buttonY + 50, 200, 20).build()
+                        Component.literal("Done"),
+                        button -> onClose()
+                ).bounds(centerX + 5, bottomY, 150, 20).build()
         );
     }
 
-    private void selectProfile(String id) {
+    private void activateProfile(String id) {
         try {
-            ProfilesModFabric.getProfileManager().select(id);
-            message = "Profile selected!";
-            refreshScreen();
+            boolean selected =
+                    ProfilesModFabric.getProfileManager().select(id);
+
+            message = selected
+                    ? "Profile activated"
+                    : "Profile not found";
+
+            refreshProfiles();
         } catch (IOException e) {
             message = "Could not save selected profile";
         }
     }
 
-    private void createProfile() {
-        ProfileManager manager =
-                ProfilesModFabric.getProfileManager();
-
-        String name = "Profile " + (manager.getProfiles().size() + 1);
-
-        try {
-            manager.create(name);
-            message = "Created " + name;
-            refreshScreen();
-        } catch (IOException e) {
-            message = "Could not create profile";
-        }
+    private void editProfile(Profile profile) {
+        minecraft.gui.setScreen(
+                new ProfileEditorScreen(this, profile)
+        );
     }
 
-    private void deleteActiveProfile() {
-        ProfileManager manager =
-                ProfilesModFabric.getProfileManager();
-
-        String activeId = manager.getActiveProfileId();
-
-        if (activeId == null) {
-            message = "No active profile";
-            return;
-        }
-
+    private void deleteProfile(String id) {
         try {
-            if (manager.delete(activeId)) {
-                message = "Profile deleted";
-                refreshScreen();
-            } else {
-                message = "Keep at least one profile";
-            }
+            boolean deleted =
+                    ProfilesModFabric.getProfileManager().delete(id);
+
+            message = deleted
+                    ? "Profile deleted"
+                    : "Cannot delete the last profile";
+
+            refreshProfiles();
         } catch (IOException e) {
             message = "Could not delete profile";
         }
     }
 
-    private void refreshScreen() {
-        this.clearWidgets();
-        this.init();
+    public void refreshProfiles() {
+        clearWidgets();
+        init();
     }
 
     @Override
@@ -140,10 +147,11 @@ public class ProfilesScreen extends Screen {
                 graphics, mouseX, mouseY, partialTick
         );
 
+        String title = "Profiles";
         graphics.text(
-                this.font,
-                "Profiles",
-                this.width / 2 - 25,
+                font,
+                title,
+                width / 2 - font.width(title) / 2,
                 15,
                 0xFFFFFFFF,
                 true
@@ -151,10 +159,10 @@ public class ProfilesScreen extends Screen {
 
         if (!message.isEmpty()) {
             graphics.text(
-                    this.font,
+                    font,
                     message,
-                    this.width / 2 - this.font.width(message) / 2,
-                    this.height - 18,
+                    width / 2 - font.width(message) / 2,
+                    height - 25,
                     0xFFFFFF55,
                     true
             );

@@ -11,7 +11,9 @@ import net.minecraft.resources.Identifier;
 public final class ProfilesKeybinds {
     private static final KeyMapping.Category CATEGORY =
             KeyMapping.Category.register(
-                    Identifier.fromNamespaceAndPath("profilesmod", "main")
+                    Identifier.fromNamespaceAndPath(
+                            "profilesmod", "main"
+                    )
             );
 
     private static KeyMapping openProfiles;

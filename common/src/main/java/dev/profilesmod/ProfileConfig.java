@@ -11,9 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class ProfileConfig {
-    private static final Gson GSON = new GsonBuilder()
-            .setPrettyPrinting()
-            .create();
+    private static final Gson GSON =
+            new GsonBuilder().setPrettyPrinting().create();
 
     private ProfileConfig() {
     }
@@ -30,7 +29,15 @@ public final class ProfileConfig {
             return new ArrayList<>();
         }
 
-        return new ArrayList<>(List.of(profiles));
+        List<Profile> result = new ArrayList<>();
+
+        for (Profile profile : profiles) {
+            if (profile != null) {
+                result.add(profile);
+            }
+        }
+
+        return result;
     }
 
     public static void save(Path file, List<Profile> profiles)

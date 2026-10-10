@@ -20,7 +20,9 @@ dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:0.161.0+26.3"
+
     implementation project(path: ":common", configuration: "namedElements")
+    include project(path: ":common")
 }
 
 java {

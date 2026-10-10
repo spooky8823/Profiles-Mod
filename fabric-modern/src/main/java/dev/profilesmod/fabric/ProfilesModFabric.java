@@ -23,7 +23,9 @@ public class ProfilesModFabric implements ClientModInitializer {
         try {
             profileManager.load();
         } catch (IOException e) {
-            throw new RuntimeException("Failed to load Profiles Mod data", e);
+            throw new RuntimeException(
+                    "Failed to load Profiles Mod data", e
+            );
         }
 
         ProfilesKeybinds.register();
